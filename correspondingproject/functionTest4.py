@@ -2,7 +2,7 @@
 import inputTools
 
 import os
-import pandas as pd
+
 import numpy as py
 from sklearn.naive_bayes import GaussianNB
 from sklearn.naive_bayes import MultinomialNB
@@ -22,6 +22,7 @@ from sklearn.svm.classes import LinearSVC
 from sklearn import linear_model
 from sklearn import gaussian_process
 from sklearn import discriminant_analysis
+import os
 
 def groupAge(age):
     if age < 24:

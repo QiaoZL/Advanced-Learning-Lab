@@ -13,7 +13,7 @@ def getValueOnBasis(data, weightx, y, kernelFunc, gamma = 0):
     xi = 0    
    
     for weightxi in weightx:
-        result += weightxi*kernelFunc(result[xi],y)
+        result += weightxi*kernelFunc(data[xi],y)
         xi += 1   
         
     return result
@@ -24,7 +24,7 @@ class kvector ():
         self.weight = np.array()
         self.data = []   
 
-class kernelGramSchmidtProcess():    
+class kernel_GramSchmidtProcess():    
        
     def __init__(self,kernelFunc):
         self.kernelFunc = kernelFunc
@@ -36,53 +36,72 @@ class kernelGramSchmidtProcess():
         self.basisdata = data
         self.generateKmatrix(data,gamma)
         self.basisweight = self.generateBasis(data)
+        
+        return self.basisweight
 
-    def transform(self,data):
-        return
+    def transform(self,origindata,y=None):
+        m = origindata.shape[0]
+        n = len(self.basisweight[0])
+        transKMatrix = np.array(self.kernelFunc(origindata,self.data))
+        print(transKMatrix.shape)
+        
+        result = np.array(np.eye(m,n))
+        
+        for i in range(m):
+            
+            for j in range(n):
+                
+                result[i,j] = np.sum(transKMatrix[i] * self.basisweight[j])
+        
+        self.transdata = result
+        
+        return result
         
     def generateKmatrix(self,data,gamma = 0):
         
         self.data = data
+        print("Generate Kernel Matrix")
         if gamma == 0 :
-            self.kmatrix = self.kernelFunc(data,data)
+            self.kmatrix = np.array(self.kernelFunc(data))
         else:
-            self.kmatrix = self.kernelFunc(data,data,gamma)
+            self.kmatrix = np.array(self.kernelFunc(data,gamma))
+            
+        print("Done")
         return        
         
     def generateBasis(self,X):
         m = X.shape[0]        
         
         basisweight = np.eye(m,m)
-        vectormu = np.eye(m,m) 
-        for i in range(m):            
-            if i != 0:
-                for j in range(i):
-                    basisweight[i] -= self.k_inner_product(vectormu[i], basisweight[j])*basisweight[j]
-                basisweight[i] /= self.k_norm(basisweight[i])
+        phi = np.eye(m,m) 
+        for i in range(m):
+            for j in range(i):
+                basisweight[i] -= self.k_inner_product(phi[i], basisweight[j])*basisweight[j]
+            basisweight[i] /= self.k_norm(basisweight[i])
             
         return basisweight
         
     def k_inner_product(self,weightx,weighty):
-    
-        result = 0
-        xi = 0       
-                
-        for weightxi in weightx:
-            yi = 0
-            for weightyi in weighty:
-                result += self.kmatrix[xi,yi]*weightxi*weightyi
-                yi += 1            
-            xi +=1
+        
+        result = np.array(np.multiply(np.matrix(weightx),np.transpose(np.matrix(weighty)))) * np.array(self.kmatrix)
+        
+#         for weightxi in weightx:
+#             yi = 0
+#             for weightyi in weighty:
+#                 result += km[xi,yi]*weightxi*weightyi
+#                 yi += 1            
+#             xi +=1
                         
-        return result
+        return np.sum(result)
     
     def k_norm(self,weight,normtype = 'L2'):
         if normtype is 'L2':
             result = self.k_inner_product(weight,weight)
-            result = math.sqrt(result)
+            result = math.sqrt(abs(result))
         return result
-            
-            
+    
+
+
                
 
 
